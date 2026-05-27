@@ -1,0 +1,64 @@
+---
+paths:
+  - **/*.py
+---
+
+# Python scripting rules
+
+## Code formatting
+
+- Always follow PEP 8 guidelines
+- Always use 4 spaces for indentation, never tabs
+- Limit lines of code to 88 characters
+- Docstrings and comments should be no more than 72 characters long
+- Refactor the code or use multiline if the line length exceeds the recommended values
+
+## Import
+
+- Organize `import` sections for clarity (use `isort` to automate this task)
+- `import` grouping
+  1. Standard libraries
+  2. Additional libraries (3rd party)
+  3. Local, project-specific libraries
+- Sort `import` alphabetically in each group
+- Prefer absolute import over relative import
+
+- Always use uv, ruff, and ty over pip/poetry, black/pylint/flake8, and mypy/pyright — they're faster and stricter
+- Configure `ty` strictness via `[tool.ty.rules]` in pyproject.toml. Use `uv_build` for pure Python, `hatchling` for extensions
+- Tests in `tests/` directory mirroring package structure. Supply chain: `pip-audit` before deploying
+- Pin exact versions (`==` not `>=`), verify hashes with `uv pip install --require-hashes`.
+
+## Naming schema
+
+- Use naming schema defined in PEP 8
+- Create meaningful variable names, but don't overdo them to keep the maxium recommended line length
+- Avoid single-letter variables unless it actually makes sense
+- All names and variables must be based on English words
+- Follow naming rules:
+  - Modules: `lowercase_with_underscores`
+  - Packages: `lowercase_with_underscores`
+  - Classes: `CamelCase`
+  - Functions/methods: `lowercase_with_underscores`
+  - Variables: `lowercase_with_underscores`
+  - Constants: `UPPERCASE_WITH_UNDERSCORES`
+  - Protected names (in classes): `_single_leading_underscore`
+  - Private names (in classes): `__double_leading_underscore`
+
+## Documentation and comments
+
+- Document all classes and functions using the PEP 257 docstring convention
+- Use reStructuredText to format docstrings so you can easily convert it to external documentation with Sphinx
+- Add extended, descriptive comments for sections of code that are complex
+- When writing comments, use explanatory descriptions rather than obvious paraphrasing of the code
+- All descriptions and comments must be in English
+- Docstring rules:
+  - Classes: first line after the class definition
+  - Functions/methods: first line after `def` definition
+
+## Other requirements
+
+- Always use `type hints`
+- Use `uv` for dependency management and isolated environments
+- Use `with` to manage resources
+- Prefer `f-strings` for text formatting
+- Always catch specific exceptions, avoid bare `except:`

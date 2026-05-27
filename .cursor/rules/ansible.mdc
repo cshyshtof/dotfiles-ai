@@ -1,0 +1,73 @@
+---
+alwaysApply: false
+globs: *.yml, ansible_collections/**/*.yml, roles/**/*.yml, playbooks/*.yml
+---
+
+# Ansible rules
+
+## Code structure
+
+- Always write ansible projects using advanced structures with `roles` and `collections`
+- Create dedicated, local `ansible_collections` for local modules and roles; add the correct `galaxy.yml` configuration
+- Always use the full module names (`cisco.aci.vrf`, not `vrf`)
+- When writing local filters and callbacks always call them by full name, defined in local `galaxy.yml`
+
+## YAML syntax
+
+- Enforce strict YAML formatting - consistent syntax improves readability and prevents subtle parsing errors
+- All YAML files must start with `---`
+- Indentation: two spaces, never tabs
+- There should be exactly one space after the colon in key-value pairs
+- There should be no spaces after `{` and before `}`
+- Save module parameters as a structured map, not in the outdated `key=value` style
+- Standardize `true`/`false` unless a given module requires different values (e.g. `on`/`off`, `enabled`/`disabled`)
+
+## Naming
+
+- Each task MUST have a `name:` with a meaningful description, always in English
+- Use consistent `snake_case` for variables, tasks, files and role names
+- Do not use "dunder" variable prefixes for local variables (good: `var_loop`, bad: `_var_loop`)
+- Use structured role's variables
+  - For complex structures, role variables must be defined as dict, and start with a role name as a dict root
+  - For single variables, it must be prefixed with a role name
+
+## Idempotency
+
+- Always write idempotent tasks, using dedicated modules
+- If you must use a bare REST call, always add a task to validate existing configuration and use conditional change implementation
+- Running the playbook multiple times must always produce the same effect without unintended side effects
+- Prefer declarative modules (`cisco.aci.vrf`) over imperative ones: `command`, `shell` or `aci_rest`
+- Always specify `state` explicitly (e.g. `state: present`, `state: started`)
+- Rely on `atomic_move` when modifying files (via `copy`, `template` modules) to avoid data corruption
+- Always specify permissions and an owner when creating files and directories
+
+## Configurarion
+
+- Use `group_vars` and `host_vars` for global, static parameters
+- Avoid hard-coded values in tasks, unless justified by the logic of the task
+- Don't duplicate variables - define them once in `group_vars`, the main playbook or `defaults` of the role
+- Place variables where they logically belong; don't create "module variables" in the global playbook
+- Use Jinja2 templates (`template` module) for dynamic configuration files or structures
+- Define role variables in `defaults/main.yml` (overwritable) and `vars/main.yml` (non-overridable from inventory/extra-vars)
+- For host-specific data, prefer variables from inventory
+
+## Performance and modularity
+
+- Optimize playbook execution time, whenever possible, use timeouts to avoid stale tasks
+- Disable facts collection (`gather_facts: false`) if not explicitly needed
+- Use `setup` or `ansible.builtin.gather_facts` modules selectively if required
+- For other implementation tasks, use `tags: never` (they will always require different tags to run)
+- Always define proper tags for each task to maintain execution modularity
+- Do not exaggerate with tags, they must be justified, not overwhelming
+- Always separate tasks by their purpose, call all tasks from role's `main.yml`
+
+## Handling errors
+
+- Use `block` and `rescue` for complex error handling or a series of related tasks, for simple clarity
+- Fail fast on error; validate data as soon as possible
+- Use robust error handling and clear error display for end user, not programmer
+- Avoid raw tracebacks in output
+- Use `ansible.builtin.debug` module only to display complex data, to validate it's structure or troubleshoot inconsistencies
+- Always write separate validation tasks, so they can be run locally and independently from implementation tasks
+- Always write modular validation tasks, call all validations from `validate.yml`
+- The `validate.yml` must be also called from role's `main.yml`, so validation is alo part of implementation

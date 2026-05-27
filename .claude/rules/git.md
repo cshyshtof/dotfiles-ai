@@ -1,0 +1,101 @@
+---
+paths: []
+---
+
+# Git rules
+
+## Purpose
+
+- Git is the backbone of our development workflow
+- Adhering to these practices ensures a clean, readable history, minimizes conflicts, and enables rapid, reliable delivery.
+- These are non-negotiable standards.
+
+## Branching Strategy: Trunk Based Development
+
+- All development happens on dedicated branches, never directly on `main`
+- The `main` branch
+  - Always production-ready
+  - Only merges from release branches or squashed feature branches are allowed to the `main` branch
+- Feature branches
+  - Created from `main`
+  - Short-lived, for a single feature or bug fix
+  - Merged into `main` via squash and rebase
+  - Name branches clearly and consistently, linking directly to a ticket, fix or feature
+  - Maintain a linear, clean history on feature branches before merging
+  - Use `git rebase -i` to squash, reorder, or edit commits.
+
+## Conventional commits
+
+- Every commit message must follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification
+- This enables automated changelog generation and semantic versioning
+- Preferred format with ticket: `[TICKET-XXXX] <emoji> <type>(<scope>): <description>`
+- Allowed format without ticket: `<emoji> <type>(<scope>): <description>`
+- Non-emoji format: `<type>(<scope>): <description>`
+  - `type`: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+  - `scope` (optional): The part of the codebase affected (e.g., `auth`, `api`, `ui`, `database`)
+  - `description`: Concise, imperative, present tense, max 50 characters
+  - Body (optional): More detailed explanation, breaking changes, references to issues, list of squashed commits
+- Each commit should represent a single logical change
+- ALWAYS write commit messages in English
+- Keep subject line under 50 characters when possible
+- Use imperative mood ("add" not "added" or "adds")
+- First line should be a summary
+- Add detailed description in body if needed (separated by blank line)
+- Semantic release dependency
+  - `fix:` a commit of the type fix patches a bug in your codebase (this correlates with PATCH in semantic versioning)
+  - `feat:` a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in semantic versioning)
+  - BREAKING CHANGE: a commit that has a footer BREAKING CHANGE:, or appends a `!` after the type/scope, introduces a breaking change (correlating with MAJOR in semantic versioning). A BREAKING CHANGE can be part of commits of any type
+- A longer commit body may be provided after the short description, providing additional contextual information about the code changes
+- The body must begin one blank line after the description
+- A commit body is free-form and may consist of any number of newline separated paragraphs
+
+Emoji-type commits:
+
+- `🚀 feat`: New feature
+- `🐛 fix`: Bug fix
+- `📝 docs`: Documentation changes
+- `♻️ refactor`: Code refactoring
+- `✅ test`: Adding or updating tests
+- `⚡ perf`: Performance improvements
+- `🔧 chore`: Maintenance tasks
+- `🎨 style`: Code style changes (formatting, etc.)
+- `🔒 security`: Security fixes
+- `🚧 wip`: Work in progress
+
+## CICD variant
+
+- The following rules, in this section, apply ONLY if CICD is present (`.github` or `.gitlab` directory)
+- Feature branches are merged into protected `main` via Pull Requests (PRs)
+- Before pushing your feature branch for a Pull Request, rebase it onto the latest `main` and squash related commits into logical units
+- Only force push your own feature branches that haven't been merged or shared widely
+- Never force push to `main` (protected)
+- When merging a feature branch into `main` (via PR), always use `--no-ff` to preserve the branch history.
+
+## Code Quality & Security: Git Hooks with `pre-commit`
+
+- Automate code quality checks and security scans before code hits the repository
+- Use the `pre-commit` framework
+- Every developer must install and keep `pre-commit` hooks updated
+- This prevents common issues like linting errors, formatting inconsistencies, and accidental secret commits
+- Installation task should be part of Makefile
+  - `pip install pre-commit`
+  - `pre-commit install`
+  - `pre-commit autoupdate`
+
+## Repository Hygiene: `.gitignore` and Large Files
+
+- Keep your repository clean and focused on source code
+- Exclude generated files, dependencies, build artifacts, and sensitive information
+- Never commit large binary files (images, videos, large datasets) directly to Git, Use Git Large File Storage (LFS)
+- Install Git LFS: `git lfs install`
+- Track file types: ex.: `git lfs track "static/*.jpg"`
+- Add large files to `.gitattributes`
+
+## Resolving Conflicts: Proactive and Careful
+
+- Merge conflicts are inevitable, resolve them carefully and proactively
+- Pull changes from `main` (or your base branch) frequently to minimize the scope of potential conflicts
+- Ex.:
+  - `git checkout feature/my-feature`
+  - `git pull origin main --rebase`
+- Use IDE's merge tool or `git mergetool` to resolve conflicts, understand each change

@@ -1,0 +1,81 @@
+---
+alwaysApply: false
+globs: **/Dockerfile, **/docker-compose.yml
+---
+
+# Docker rules
+
+## Purpose
+
+- Docker is the cornerstone of modern container-first development
+- Treat your `Dockerfile` and `docker-compose.yml` as critical source code
+- These rules ensure your images are fast, secure, reproducible, and aligned with modern DevOps practices
+
+## Image build
+
+- Always use multi-stage builds, it isolates build-time dependencies from runtime, drastically reducing final image size and attack surface
+- Use `COPY --from=builder` in multi-stage builds to keep final images lean
+- Keep layers minimal — combine related RUN commands with `&&` and clean up package caches in the same layer
+- Order instructions from least-changing to most-changing to maximize layer caching. Dependencies before source code
+- Docker caches layers, so placing stable instructions first maximizes cache hits and speeds up subsequent builds
+- Always use a `.dockerignore` file to exclude irrelevant files and directories from your build context
+- Set memory limits for your containers to prevent them from consuming excessive resources
+
+## Base image
+
+- Start with the smallest possible base image from a trusted source (Docker Official Images, Verified Publishers)
+- Always use specific image tags (e.g., `node:20-alpine`) instead of `latest` for reproducibility
+- Alpine variants are often the best choice for minimal footprints
+
+## Arguments
+
+- Use `ARG` for build-time variables that do not persist in the final image
+- Use `ENV` for runtime environment variables that your application needs
+
+## Healthcheck
+
+- Define `HEALTHCHECK` instructions in your `Dockerfile`
+- This allows Docker and orchestration tools to verify if your service is still working correctly
+- This is crucial for reliable deployments
+
+## Logging
+
+- Containerized applications must write logs to `stdout` and `stderr`
+- This allows Docker and orchestration tools to easily capture, aggregate, and manage logs without complex in-container log rotation or file access
+- Configure the correct timezone for containers
+
+## Multi-service
+
+- For multi-service applications, always use `docker-compose.yml` to define and run your services for consistent, reproducible environment
+- Use named volumes for persistent data
+- Never bind-mount production databases
+- Use `depends_on` with `condition: service_healthy` for proper startup ordering
+- Use environment variable files (`.env`) for configuration, but never commit secrets to version control
+- Use `docker compose up --build --force-recreate` when debugging service startup issues
+
+## Security
+
+- Never run your application as `root` inside the container
+- Create a dedicated non-root user and switch to it using the `USER` instruction to enforce the principle of least privilege
+- Never hardcode sensitive information (API keys, passwords) directly in `Dockerfile` or `docker-compose.yml`
+- For local development, use Docker Compose's `secrets` feature.
+- Prefer `COPY` over `ADD` unless you specifically need URL fetching or tar extraction
+- Regularly scan images for vulnerabilities using tools like Trivy
+- Validate all input data to prevent injection attacks
+- Never expose unnecessary ports, this can increase the attack surface of an application
+- Do not use the shell form of `CMD` or `ENTRYPOINT`
+- Use the exec form (`["executable", "param1", "param2"]`) to avoid shell injection vulnerabilities and signal handling issues
+- Ensure that your application has the correct file permissions.
+
+## Networking
+
+- Use custom bridge networks (if available and defined in a design document), not host networking
+- Reference services by name in compose
+
+## Debugging
+
+- Use `docker logs <container>` and `docker logs --follow` for real-time output
+- Use `docker exec -it <container> sh` to inspect a running container
+- Use `docker inspect` to check networking, mounts, and environment variables
+- For build failures, use `docker build --no-cache` to rule out stale layers
+- Use `docker stats` and `docker top` for resource monitoring
