@@ -1,0 +1,15 @@
+---
+alwaysApply: false
+globs: *.json
+---
+
+# Instructions
+
+- Analyze the data structure or requirements
+- Determine types for each field (string, number, object, array, etc.)
+- Add constraints: required fields, patterns, min/max values
+- Include descriptions for documentation
+- Set appropriate `$schema` version: `"$schema": "http://json-schema.org/draft-07/schema#"`
+- Use `$defs` for data types used in different elements, but not if elements are repeated within a list
+- Use `additionalProperties: false` for strict validation
+- Prefer specific formats over loose patterns
